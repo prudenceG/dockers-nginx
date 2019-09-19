@@ -1,0 +1,40 @@
+version: '3'
+
+services:
+  api:
+    build: .
+    depends_on:
+      - api_db
+    expose:
+      - 8007
+    environment:
+      DATABASE_URL: postgres://postgres:postgres@api_db/postgres
+
+  api_db:
+    image: postgres:11.2-alpine
+
+  server:
+    build: ./server
+    expose:
+      - 8009
+
+  web-app:
+    build: ./web-app
+    volumes:
+      - web-app-build:/app/build
+    expose:
+      - 3000
+
+  nginx:
+    image: nginx:latest
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf
+      - web-app-build:/web-app-build
+    ports:
+      - 80:80
+    depends_on:
+      - api
+      - web-app
+      - server
+volumes:
+  web-app-build:
